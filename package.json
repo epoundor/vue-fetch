@@ -20,9 +20,9 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/epoundor/vue-apicaller"
+    "url": "https://github.com/epoundor/vue-api-caller"
   },
   "contributors": [
-    "Aimé Sagbo <> (url)"
+    "Aimé Sagbo <sagboaime267@gmail.com> (https://github.com/Goldy98)"
   ]
 }
