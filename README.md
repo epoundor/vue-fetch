@@ -21,35 +21,36 @@ import apiCaller from "vue-apicaller";
 Next , you can use the package's methods to make API calls and handle the responses:
 
 ```js
-const { data, error, execute, isAborted, isFinished, isLoading } = apiCaller();
+const { data, error, execute, isAborted, isFinished, isLoading, registerSuccessCallback, registerErrorCallback } = apiCaller();
 ```
 
 Additionally, the package provides a comprehensive state management system, allowing you to keep track of the progress of your API calls.
 
 ## **Example**
 
-```jsx
-Copy code
+
+```js
 import {apiCall as api} from 'vue-apicaller'
 
-const {execute } = api("/some-endpoint", { method: "GET" });
-await execute()
+const {execute} = api("/some-endpoint", { method: "GET" });
+
+execute();
 
 ```
 
-## **Best Pratices**
+## **Recommended Usage**
 
 Use hooks
 
 ```js
 // api/posts
-export function useFecthPosts() {
+export function useFetchPosts() {
   return apiCall("/some-endpoint", { method: "GET" });
 }
 ```
 
 ```js
-import { useFecthPosts } from "./api/posts";
+import { useFetchPosts } from "./api/posts";
 import { onMounted } from "vue";
 const {
   execute: fetchPosts,
@@ -60,9 +61,11 @@ const {
 onError((error) => {
   console.error("Something went wrong", error);
 });
+
 onSuccess((posts) => {
   console.log("Posts", posts);
 });
+
 onMounted(() => {
   fetchPosts();
 });
