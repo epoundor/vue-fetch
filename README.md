@@ -7,7 +7,7 @@ This package allows you to easily make calls to API using Vue.js. It provides a 
 To install the package, simply run the following command:
 
 ```bash
-npm i vue-apicaller
+npm i @epoundor/vue-fetch
 ```
 
 ## **Usage**
@@ -15,13 +15,13 @@ npm i vue-apicaller
 To use the package, first import it into your Vue component:
 
 ```jsx
-import apiCaller from "vue-apicaller";
+import {VFetcher} from "@epoundor/vue-fetch";
 ```
 
 Next , you can use the package's methods to make API calls and handle the responses:
 
 ```js
-const { data, error, execute, isAborted, isFinished, isLoading, registerSuccessCallback, registerErrorCallback } = apiCaller();
+const { data, error, execute, isAborted, isFinished, isLoading, registerSuccessCallback, registerErrorCallback } = new VFetcher("https://example.com/").fetc();
 ```
 
 Additionally, the package provides a comprehensive state management system, allowing you to keep track of the progress of your API calls.
@@ -30,8 +30,19 @@ Additionally, the package provides a comprehensive state management system, allo
 
 
 ```js
-import {apiCall as api} from 'vue-apicaller'
+import axios from "axios"
+import {VFetcher} from '@epoundor/vue-fetch'
 
+const axiosInstance = axios.create({
+      withCredentials: true,
+      baseURL: baseUrl,
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+      },
+    })
+
+const api = new VFecther("https://example.com/",axiosInstance).fetch
 const {execute} = api("/some-endpoint", { method: "GET" });
 
 execute();
@@ -45,7 +56,7 @@ Use hooks
 ```js
 // api/posts
 export function useFetchPosts() {
-  return apiCall("/some-endpoint", { method: "GET" });
+  return api("/some-endpoint", { method: "GET" });
 }
 ```
 
