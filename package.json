@@ -1,6 +1,6 @@
 {
   "name": "@epoundor/vue-fetch",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "description": "The ultimate solution for making API calls in your Vue.js projects",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
@@ -12,7 +12,6 @@
   "author": "Epoundor Freedauss TANDA <freedausstanda@gmail.com> (https://github.com/epoudor)",
   "license": "ISC",
   "peerDependencies": {
-    "vite": "^4.0.4",
     "axios": "^1.5.1",
     "typescript": "^5.2.2",
     "vue": "^3.3.4"
