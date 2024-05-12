@@ -1,0 +1,39 @@
+{
+  "name": "@epoundor/vue-fetch",
+  "version": "0.1.1",
+  "description": "The ultimate solution for making API calls in your Vue.js projects",
+  "main": "dist/vue-fetch.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc && vite build",
+    "dev": "tsc --watch"
+  },
+  "author": "Epoundor Freedauss TANDA <freedausstanda@gmail.com> (https://github.com/epoudor)",
+  "license": "ISC",
+  "peerDependencies": {
+    "axios": "^1.5.1",
+    "vue": "^3.3.4"
+  },
+  "devDependencies": {
+    "@types/node": "^20.12.11",
+    "vite-plugin-dts": "^3.9.1",
+    "typescript": "^5.2.2",
+    "vite": "^5.2.0"
+  },
+  "dependencies": {
+    "path-to-regexp": "^6.2.1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/epoundor/vue-api-caller.git"
+  },
+  "keywords": [
+    "vue",
+    "api-caller",
+    "fetch",
+    "axios"
+  ],
+  "contributors": [
+    "Aimé Sagbo <sagboaime267@gmail.com> (https://github.com/Goldy98)"
+  ]
+}
