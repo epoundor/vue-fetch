@@ -13,7 +13,7 @@ export declare type ApiCall<T, PayloadType> = {
     response: ComputedRef<AxiosResponse> | null;
     error: ComputedRef<AxiosError> | null;
     data: ComputedRef<T> | null;
-    execute: (config?: Partial<Option_2<PayloadType>>, useFakerWait?: boolean) => Promise<void>;
+    execute: (config?: Partial<Option_2<PayloadType>>, useFakerWait?: boolean) => Promise<AxiosResponse | AxiosError | null>;
     onSuccess: (cb: SuccessCallBack<T>) => unknown;
     onFailure: (cb: FailureCallBack) => unknown;
     onError: (cb: ErrorCallBack) => unknown;

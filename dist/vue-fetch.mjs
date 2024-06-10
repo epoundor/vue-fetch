@@ -1697,6 +1697,7 @@ class hr {
       } finally {
         l.isLoading = !1;
       }
+      return l.response || l.error;
     }
     function u(f) {
       n.push(f);
