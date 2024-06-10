@@ -51,7 +51,7 @@ export type ApiCall<T, PayloadType> = {
   execute: (
     config?: Partial<Option<PayloadType>>,
     useFakerWait?: boolean
-  ) => Promise<void>;
+  ) => Promise<AxiosResponse | AxiosError | null>;
   onSuccess: (cb: SuccessCallBack<T>) => unknown;
   onFailure: (cb: FailureCallBack) => unknown;
   onError: (cb: ErrorCallBack) => unknown;
@@ -142,7 +142,7 @@ export class VFetcher {
 
     async function execute(
       config?: Partial<Option<PayloadType>>,
-    ): Promise<void> {
+    ): Promise<AxiosResponse | AxiosError | null> {
       const generateUrl = compile(url);
 
       const stringifiedRouteParams: Record<string, string> = {};
@@ -216,6 +216,7 @@ export class VFetcher {
       } finally {
         context.isLoading = false;
       }
+      return context.response || context.error
     }
 
     function onSuccess(cb: Function) {
