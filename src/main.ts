@@ -7,7 +7,7 @@ import { computed, reactive, type ComputedRef } from "vue";
 
 
 type HttpMethod = "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
-interface Option<PayloadType> {
+interface Option<PayloadType> extends AxiosRequestConfig {
   immediate: boolean;
   method: HttpMethod;
   params: Record<string, string | number | null>;
@@ -167,6 +167,7 @@ export class VFetcher {
             cb(progressEvent);
           });
         },
+        ...config
       };
 
       if (config?.payload) {
