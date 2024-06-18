@@ -1,6 +1,6 @@
 {
   "name": "@epoundor/vue-fetch",
-  "version": "0.1.3-alpha.1",
+  "version": "0.1.3-alpha.2",
   "description": "The ultimate solution for making API calls in your Vue.js projects",
   "main": "dist/vue-fetch.js",
   "types": "dist/index.d.ts",

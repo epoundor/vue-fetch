@@ -1,6 +1,7 @@
 import { AxiosError } from 'axios';
 import { AxiosInstance } from 'axios';
 import { AxiosProgressEvent } from 'axios';
+import { AxiosRequestConfig } from 'axios';
 import { AxiosResponse } from 'axios';
 import { ComputedRef } from 'vue';
 import { InternalAxiosRequestConfig } from 'axios';
@@ -26,7 +27,7 @@ export declare type FailureCallBack = (data: any, response: AxiosResponse) => un
 
 declare type HttpMethod = "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
 
-declare interface Option_2<PayloadType> {
+declare interface Option_2<PayloadType> extends AxiosRequestConfig {
     immediate: boolean;
     method: HttpMethod;
     params: Record<string, string | number | null>;

@@ -1679,7 +1679,8 @@ class hr {
           i.forEach((O) => {
             O(S);
           });
-        }
+        },
+        ...f
       };
       f != null && f.payload && (((M = C.method) == null ? void 0 : M.toLowerCase()) === "get" ? C.params = f.payload : C.data = f.payload), f != null && f.headers && (C.headers = f.headers), l.isLoading = !0;
       try {
