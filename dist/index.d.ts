@@ -30,7 +30,7 @@ declare type HttpMethod = "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
 declare interface Option_2<PayloadType> extends AxiosRequestConfig {
     immediate: boolean;
     method: HttpMethod;
-    params: Record<string, string | number | null>;
+    params: Record<string, string | number | null | number[] | string[]>;
     headers: Record<string, string | number>;
     routeParams: Record<string, string | number>;
     payload: PayloadType;
