@@ -24,7 +24,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/epoundor/vue-api-caller.git"
+    "url": "git+https://github.com/epoundor/vue-fetch"
   },
   "keywords": [
     "vue",
