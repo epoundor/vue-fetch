@@ -1,6 +1,6 @@
 {
   "name": "@epoundor/vue-fetch",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "description": "The ultimate solution for making API calls in your Vue.js projects",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
