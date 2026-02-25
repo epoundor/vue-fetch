@@ -1,13 +1,16 @@
 {
   "name": "@epoundor/vue-fetch",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "The ultimate solution for making API calls in your Vue.js projects",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
   "scripts": {
     "build": "tsc",
     "dev": "tsc --watch",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "prepublishOnly": "pnpm build",
+    "release": "pnpm test && pnpm build && bumpp"
   },
   "author": "Epoundor Freedauss TANDA <freedausstanda@gmail.com> (https://github.com/epoudor)",
   "license": "ISC",
@@ -17,7 +20,7 @@
     "vue": "^3.3.4"
   },
   "dependencies": {
-    "path-to-regexp": "^6.2.1"
+    "path-to-regexp": "^6.3.0"
   },
   "repository": {
     "type": "git",
@@ -29,5 +32,11 @@
   ],
   "contributors": [
     "Aimé Sagbo <sagboaime267@gmail.com> (https://github.com/Goldy98)"
-  ]
+  ],
+  "devDependencies": {
+    "axios-mock-adapter": "^2.1.0",
+    "bumpp": "^10.4.1",
+    "vitest": "^4.0.18",
+    "vue": "^3.5.29"
+  }
 }

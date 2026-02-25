@@ -1,4 +1,4 @@
-import type { AxiosResponse, InternalAxiosRequestConfig } from "axios";
+import type { AxiosResponse, CreateAxiosDefaults, InternalAxiosRequestConfig } from "axios";
 import { AxiosError, type AxiosInstance, type AxiosProgressEvent } from "axios";
 import { type ComputedRef } from "vue";
 type HttpMethod = "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
@@ -19,18 +19,19 @@ export type ApiCall<T, PayloadType> = {
     isFinished: ComputedRef<boolean>;
     isAborted: ComputedRef<boolean>;
     statusCode: ComputedRef<number>;
-    response: ComputedRef<AxiosResponse> | null;
-    error: ComputedRef<AxiosError> | null;
-    data: ComputedRef<T> | null;
-    execute: (config?: Partial<Option<PayloadType>>, useFakerWait?: boolean) => Promise<void>;
-    onSuccess: (cb: SuccessCallBack<T>) => unknown;
-    onFailure: (cb: FailureCallBack) => unknown;
-    onError: (cb: ErrorCallBack) => unknown;
-    onUploadProgress: (cb: UploadProgressCallBack) => unknown;
+    response: ComputedRef<AxiosResponse | null>;
+    error: ComputedRef<AxiosError | null>;
+    data: ComputedRef<T | null>;
+    execute: (config?: Partial<Option<PayloadType>>) => Promise<void>;
+    onSuccess: (cb: SuccessCallBack<T>) => void;
+    onFailure: (cb: FailureCallBack) => void;
+    onError: (cb: ErrorCallBack) => void;
+    onUploadProgress: (cb: UploadProgressCallBack) => void;
 };
 export declare class VFetcher {
     private axiosInstance;
-    constructor(baseUrl?: string, axiosInstance?: AxiosInstance);
+    constructor(config: CreateAxiosDefaults);
+    constructor(baseUrl: string, config?: CreateAxiosDefaults);
     /**
    * Registers request interceptors for axios library
    * @function

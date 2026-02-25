@@ -1,4 +1,4 @@
-import type { AxiosRequestConfig, AxiosResponse, InternalAxiosRequestConfig } from "axios";
+import type { AxiosRequestConfig, AxiosResponse, CreateAxiosDefaults, InternalAxiosRequestConfig } from "axios";
 import axios, {
   AxiosError,
   type AxiosInstance,
@@ -40,40 +40,44 @@ export type UploadProgressCallBack = (
 ) => unknown;
 
 export type ApiCall<T, PayloadType> = {
-  // context: Omit<Context<T>, "data">;
   isLoading: ComputedRef<boolean>;
   isFinished: ComputedRef<boolean>;
   isAborted: ComputedRef<boolean>;
   statusCode: ComputedRef<number>;
-  response: ComputedRef<AxiosResponse> | null;
-  // data: T | unknown | null;
-  error: ComputedRef<AxiosError> | null;
-  data: ComputedRef<T> | null;
-  // data: ComputedRef<T> | ComputedRef<unknown> | null;
+  response: ComputedRef<AxiosResponse | null>;
+  error: ComputedRef<AxiosError | null>;
+  data: ComputedRef<T | null>;
   execute: (
     config?: Partial<Option<PayloadType>>,
-    useFakerWait?: boolean
   ) => Promise<void>;
-  onSuccess: (cb: SuccessCallBack<T>) => unknown;
-  onFailure: (cb: FailureCallBack) => unknown;
-  onError: (cb: ErrorCallBack) => unknown;
-  onUploadProgress: (cb: UploadProgressCallBack) => unknown;
+  onSuccess: (cb: SuccessCallBack<T>) => void;
+  onFailure: (cb: FailureCallBack) => void;
+  onError: (cb: ErrorCallBack) => void;
+  onUploadProgress: (cb: UploadProgressCallBack) => void;
 };
 
 export class VFetcher {
   private axiosInstance: AxiosInstance;
+
+  constructor(config: CreateAxiosDefaults);
+  constructor(baseUrl: string, config?: CreateAxiosDefaults);
   constructor(
-    baseUrl: string = "",
-    axiosInstance: AxiosInstance = axios.create({
-      withCredentials: true,
-      baseURL: baseUrl,
-      headers: {
-        "Content-Type": "application/json",
-        Accept: "application/json",
-      },
-    })
+    baseUrlOrConfig: string | CreateAxiosDefaults = "",
+    config?: CreateAxiosDefaults
   ) {
-    this.axiosInstance = axiosInstance;
+    if (typeof baseUrlOrConfig === "string") {
+      const resolvedConfig: CreateAxiosDefaults = config ?? {
+        baseURL: baseUrlOrConfig,
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
+      };
+      this.axiosInstance = axios.create(resolvedConfig);
+      this.axiosInstance.defaults.baseURL = baseUrlOrConfig;
+    } else {
+      this.axiosInstance = axios.create(baseUrlOrConfig);
+    }
   }
 
   /**
@@ -123,10 +127,10 @@ export class VFetcher {
     url: string = "",
     options: Partial<Option<PayloadType>> & { method: HttpMethod } = { method: "GET", immediate: true }
   ): ApiCall<T, PayloadType> {
-    const successCallbacks: Function[] = [];
-    const failureCallbacks: Function[] = [];
-    const errorCallbacks: Function[] = [];
-    const uploadProgessCallbacks: Function[] = [];
+    const successCallbacks: SuccessCallBack<T>[] = [];
+    const failureCallbacks: FailureCallBack[] = [];
+    const errorCallbacks: ErrorCallBack[] = [];
+    const uploadProgressCallbacks: UploadProgressCallBack[] = [];
 
     const { immediate = false, routeParams } = options;
 
@@ -158,30 +162,31 @@ export class VFetcher {
         });
       }
 
+      const method = config?.method || options.method || "GET";
+
       const requestConfig: AxiosRequestConfig = {
         url: generateUrl(stringifiedRouteParams || config?.routeParams),
-        method: options.method || "GET",
+        method,
         params: config?.params || options.params || {},
-        data: options.payload || {},
-        headers: options.headers || {},
+        headers: config?.headers || options.headers || {},
         onUploadProgress(progressEvent: AxiosProgressEvent) {
-          uploadProgessCallbacks.forEach((cb) => {
+          uploadProgressCallbacks.forEach((cb) => {
             cb(progressEvent);
           });
         },
       };
 
-      if (config?.payload) {
-        if (requestConfig.method?.toLowerCase() === "get") {
-          requestConfig.params = config.payload;
+      // Apply payload: as query params for GET, as body for other methods
+      const payload = config?.payload || options.payload;
+      if (payload) {
+        if (method.toUpperCase() === "GET") {
+          requestConfig.params = { ...requestConfig.params, ...(payload as Record<string, unknown>) };
         } else {
-          requestConfig.data = config.payload;
+          requestConfig.data = payload;
         }
       }
 
-      // if (config.url) {
-      //   requestConfig.url = `${requestConfig.url}/${config.url}`;
-      // }
+
 
       context.isLoading = true;
 
@@ -194,10 +199,8 @@ export class VFetcher {
         context.statusCode = response.status;
 
         successCallbacks.forEach((cb) => {
-          cb(context.data, context.response, axiosInstance);
+          cb(context.data as T, context.response as AxiosResponse, axiosInstance);
         });
-
-        context.isFinished = true;
       } catch (error) {
         const axiosError = error as AxiosError;
 
@@ -207,33 +210,34 @@ export class VFetcher {
           context.data = axiosError.response.data;
 
           failureCallbacks.forEach((cb) => {
-            cb(context.data, context.response);
+            cb(context.data, context.response as AxiosResponse);
           });
         } else {
           context.error = axiosError;
           errorCallbacks.forEach((cb) => {
-            cb(context.error);
+            cb(context.error as AxiosError);
           });
         }
       } finally {
         context.isLoading = false;
+        context.isFinished = true;
       }
     }
 
-    function onSuccess(cb: Function) {
+    function onSuccess(cb: SuccessCallBack<T>) {
       successCallbacks.push(cb);
     }
 
-    function onFailure(cb: Function) {
+    function onFailure(cb: FailureCallBack) {
       failureCallbacks.push(cb);
     }
 
-    function onError(cb: Function) {
+    function onError(cb: ErrorCallBack) {
       errorCallbacks.push(cb);
     }
 
-    function onUploadProgress(cb: Function) {
-      uploadProgessCallbacks.push(cb);
+    function onUploadProgress(cb: UploadProgressCallBack) {
+      uploadProgressCallbacks.push(cb);
     }
 
     if (immediate) {
@@ -241,15 +245,13 @@ export class VFetcher {
     }
 
     return {
-      // ...toRefs(context),
       isLoading: computed(() => context.isLoading),
       isFinished: computed(() => context.isFinished),
       isAborted: computed(() => context.isAborted),
       statusCode: computed(() => context.statusCode),
-      response: computed(() => context.response as AxiosResponse),
-      // data: T | unknown | null;
-      error: computed(() => context.error as AxiosError),
-      data: computed(() => context.data as T),
+      response: computed(() => context.response),
+      error: computed(() => context.error),
+      data: computed(() => context.data as T | null),
       execute,
       onSuccess,
       onFailure,
@@ -262,7 +264,7 @@ export class VFetcher {
     const plural = `${resource}s`;
     const pascalCased = pascalCase(resource);
     const pluralPascalCased = pascalCase(plural);
-    const fetch = this.fetch
+    const fetch = this.fetch.bind(this);
     return {
       [`useFetch${pluralPascalCased}`](
         options: any = {

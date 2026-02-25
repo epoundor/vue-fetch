@@ -1,101 +1,230 @@
-# **API Caller Wrapper for Vue.js**
+# **@epoundor/vue-fetch**
 
-This package allows you to easily make calls to API using Vue.js. It provides a simple and intuitive interface for making API calls and follows the best practices for integrating with the Vue.js lifecycle.
+> The ultimate solution for making API calls in your Vue.js 3 projects — reactive, typed, and simple.
 
 ## **Installation**
 
-To install the package, simply run the following command:
-
 ```bash
 npm i @epoundor/vue-fetch
+# or
+pnpm add @epoundor/vue-fetch
+```
+
+**Peer dependencies:** `vue >= 3.3`, `axios >= 1.5`
+
+## **Quick Start**
+
+```ts
+import { VFetcher } from "@epoundor/vue-fetch";
+
+const api = new VFetcher("https://api.example.com");
+
+// Make a simple GET request
+const { data, isLoading, execute } = api.fetch<User[]>("/users", { method: "GET" });
+execute();
 ```
 
 ## **Usage**
 
-To use the package, first import it into your Vue component:
+### Creating an instance
 
-```jsx
-import {VFetcher} from "@epoundor/vue-fetch";
+```ts
+import { VFetcher } from "@epoundor/vue-fetch";
+
+// Simple — just a base URL
+const api = new VFetcher("https://api.example.com");
+
+// With base URL + custom Axios config
+const api = new VFetcher("https://api.example.com", {
+  withCredentials: true,
+  headers: {
+    "Content-Type": "application/json",
+    Accept: "application/json",
+  },
+});
+
+// Config only — no separate base URL
+const api = new VFetcher({
+  baseURL: "https://api.example.com",
+  withCredentials: true,
+  headers: {
+    "Content-Type": "application/json",
+    Accept: "application/json",
+  },
+});
 ```
 
-Next , you can use the package's methods to make API calls and handle the responses:
+### Making requests
 
-```js
-const { data, error, execute, isAborted, isFinished, isLoading, registerSuccessCallback, registerErrorCallback } = new VFetcher("https://example.com/").fetc();
-```
+The `fetch` method returns a reactive `ApiCall` object with state and callbacks:
 
-Additionally, the package provides a comprehensive state management system, allowing you to keep track of the progress of your API calls.
+```ts
+interface ApiCall<T, PayloadType> {
+  // Reactive state (ComputedRef)
+  isLoading: ComputedRef<boolean>;
+  isFinished: ComputedRef<boolean>;
+  isAborted: ComputedRef<boolean>;
+  statusCode: ComputedRef<number>;
+  response: ComputedRef<AxiosResponse | null>;
+  error: ComputedRef<AxiosError | null>;
+  data: ComputedRef<T | null>;
 
-## **Example**
-
-
-```js
-import axios from "axios"
-import {VFetcher} from '@epoundor/vue-fetch'
-
-const axiosInstance = axios.create({
-      withCredentials: true,
-      baseURL: baseUrl,
-      headers: {
-        "Content-Type": "application/json",
-        Accept: "application/json",
-      },
-    })
-
-const api = new VFecther("https://example.com/",axiosInstance).fetch
-const {execute} = api("/some-endpoint", { method: "GET" });
-
-execute();
-
-```
-
-## **Recommended Usage**
-
-Use hooks
-
-```js
-// api/posts
-export function useFetchPosts() {
-  return api("/some-endpoint", { method: "GET" });
+  // Methods
+  execute: (config?: Partial<Option<PayloadType>>) => Promise<void>;
+  onSuccess: (cb: SuccessCallBack<T>) => void;
+  onFailure: (cb: FailureCallBack) => void;
+  onError: (cb: ErrorCallBack) => void;
+  onUploadProgress: (cb: UploadProgressCallBack) => void;
 }
 ```
 
-```js
-import { useFetchPosts } from "./api/posts";
+#### GET request
+
+```ts
+const { data, isLoading, execute, onSuccess, onError } = api.fetch<Post[]>("/posts", {
+  method: "GET",
+  immediate: true, // executes immediately
+});
+
+onSuccess((posts, response) => {
+  console.log("Fetched posts:", posts);
+});
+
+onError((error) => {
+  console.error("Network error:", error);
+});
+```
+
+#### POST request
+
+```ts
+const { execute, onSuccess, onFailure } = api.fetch<Post, CreatePostPayload>("/posts", {
+  method: "POST",
+});
+
+onSuccess((post) => {
+  console.log("Created:", post);
+});
+
+onFailure((data, response) => {
+  // Server responded with 4xx/5xx
+  console.error("Validation error:", data);
+});
+
+// Execute with payload
+execute({ payload: { title: "Hello", body: "World" } });
+```
+
+#### Dynamic route params
+
+Uses `path-to-regexp` for URL parameter interpolation:
+
+```ts
+const { execute } = api.fetch<Post>("/posts/:id", { method: "GET" });
+
+// Replace :id with actual value
+execute({ routeParams: { id: 42 } });
+```
+
+### Interceptors
+
+Register Axios interceptors for auth tokens, logging, etc.:
+
+```ts
+// Request interceptor — e.g. attach auth token
+api.registerRequestInterceptor((config) => {
+  config.headers.Authorization = `Bearer ${getToken()}`;
+  return config;
+});
+
+// Response interceptor — e.g. handle 401
+api.registerResponseInterceptor(
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 401) {
+      redirectToLogin();
+    }
+    return Promise.reject(error);
+  }
+);
+```
+
+### Auto-generated CRUD hooks
+
+`createCrudApi` generates composable-style hooks for a resource:
+
+```ts
+const postApi = api.createCrudApi("post", "/api/posts");
+
+// Generated hooks:
+// postApi.useFetchPosts()     — GET /api/posts
+// postApi.useFetchPost(id)    — GET /api/posts/:id
+// postApi.useFetchPostDynamic()  — GET /api/posts/:id (with routeParams)
+// postApi.useCreatePost()     — POST /api/posts
+// postApi.useUpdatePost(id)   — PUT /api/posts/:id
+// postApi.useDeletePost(id)   — DELETE /api/posts/:id
+// postApi.useDeletePostDynamic() — DELETE /api/posts/:id (with routeParams)
+```
+
+## **Recommended Pattern**
+
+Create composable hooks per resource for clean separation:
+
+```ts
+// composables/usePosts.ts
+import { api } from "@/lib/api";
+
+export function useFetchPosts() {
+  return api.fetch<Post[]>("/posts", { method: "GET" });
+}
+
+export function useCreatePost() {
+  return api.fetch<Post, CreatePostPayload>("/posts", { method: "POST" });
+}
+```
+
+```vue
+<script setup lang="ts">
+import { useFetchPosts } from "@/composables/usePosts";
 import { onMounted } from "vue";
-const {
-  execute: fetchPosts,
-  registerErrorCallback: onError,
-  registerSuccessCallback: onSuccess,
-} = useFecthPosts();
+
+const { data: posts, isLoading, execute: fetchPosts, onError } = useFetchPosts();
 
 onError((error) => {
   console.error("Something went wrong", error);
 });
 
-onSuccess((posts) => {
-  console.log("Posts", posts);
-});
-
 onMounted(() => {
   fetchPosts();
 });
+</script>
+
+<template>
+  <div v-if="isLoading">Loading...</div>
+  <ul v-else>
+    <li v-for="post in posts" :key="post.id">{{ post.title }}</li>
+  </ul>
+</template>
 ```
+
+## **Callbacks**
+
+| Callback | When triggered | Parameters |
+|---|---|---|
+| `onSuccess` | Server responded with 2xx | `(data: T, response: AxiosResponse, axiosInstance: AxiosInstance)` |
+| `onFailure` | Server responded with 4xx/5xx | `(data: any, response: AxiosResponse)` |
+| `onError` | Network error / no response | `(error: AxiosError)` |
+| `onUploadProgress` | Upload progress event | `(progressEvent: AxiosProgressEvent)` |
 
 ## **Features**
 
-- Simple and intuitive interface for making API calls
-- Automatically handles errors and provides detailed information about any failures
-- Comprehensive state management system
-- Allows you to define your API calls using an easy-to-use OpenAI declaration file
-
-## **Note**
-
-This package uses axios as a dependency to handle the http calls, so make sure you have it installed in your project.
-
-## **Contributing**
-
-If you have any suggestions or find any bugs, please feel free to open an issue or submit a pull request.
+- 🎯 **Type-safe** — Full TypeScript generics for request/response types
+- ⚡ **Reactive** — All state exposed as Vue `ComputedRef` values
+- 🔌 **Interceptors** — Register Axios request/response interceptors
+- 🛣️ **Dynamic routes** — URL parameter interpolation with `path-to-regexp`
+- 📦 **CRUD generator** — Auto-generate composable hooks for any resource
+- 📤 **Upload progress** — Built-in upload progress tracking
+- 🎛️ **Flexible** — Pass payload, params, headers, and route params per-call
 
 ## **License**
 
@@ -103,10 +232,6 @@ This package is open-sourced software licensed under the **[MIT license](https:/
 
 ## **Author**
 
-This package is created and maintained by [Epoundor](https://github.com/epoundor)
+Created and maintained by [Epoundor](https://github.com/epoundor).
 
-Enjoy coding!
-
-```
-
-```
+**Contributors:** [Aimé Sagbo](https://github.com/Goldy98)
