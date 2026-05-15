@@ -9,8 +9,9 @@
     "dev": "tsc --watch",
     "test": "vitest run",
     "test:watch": "vitest",
-    "prepublishOnly": "pnpm build",
-    "release": "pnpm test && pnpm build && bumpp"
+    "prepublishOnly": "pnpm build && npm login",
+    "release": "pnpm test && pnpm build && bumpp && pnpm publish",
+    "publish": "npm publish --access public"
   },
   "author": "Epoundor Freedauss TANDA <freedausstanda@gmail.com> (https://github.com/epoudor)",
   "license": "ISC",
