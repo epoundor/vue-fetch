@@ -1,8 +1,8 @@
-import type { AxiosResponse, CreateAxiosDefaults, InternalAxiosRequestConfig } from "axios";
+import type { AxiosRequestConfig, AxiosResponse, CreateAxiosDefaults, InternalAxiosRequestConfig } from "axios";
 import { AxiosError, type AxiosInstance, type AxiosProgressEvent } from "axios";
 import { type ComputedRef } from "vue";
 type HttpMethod = "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
-interface Option<PayloadType> {
+interface Option<PayloadType> extends AxiosRequestConfig {
     immediate: boolean;
     method: HttpMethod;
     params: Record<string, string | number | null>;
