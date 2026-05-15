@@ -9,7 +9,7 @@ import { computed, reactive, type ComputedRef } from "vue";
 
 
 type HttpMethod = "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
-interface Option<PayloadType> {
+interface Option<PayloadType> extends AxiosRequestConfig {
   immediate: boolean;
   method: HttpMethod;
   params: Record<string, string | number | null>;
@@ -165,6 +165,8 @@ export class VFetcher {
       const method = config?.method || options.method || "GET";
 
       const requestConfig: AxiosRequestConfig = {
+        ...config,
+        ...options,
         url: generateUrl(stringifiedRouteParams || config?.routeParams),
         method,
         params: config?.params || options.params || {},
